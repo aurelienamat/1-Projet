@@ -111,7 +111,7 @@ app.post('/connexion', (req, res) => {
           return;
         }
         if (results) {
-          console.log('Connexion réussi id : ' + resultat.id);
+          console.log('Connexion réussi id : ' + resultat.id + ' Login : ' + resultat.login);
 
           //Creation du token
           const token = jwt.sign(
@@ -122,7 +122,7 @@ app.post('/connexion', (req, res) => {
 
           res.cookie('authtoken', token, {
             httpOnly: true, //empêche le JavaScript d'accéder au cookie, donc protège contre le XSS
-            secure: true, // force le cookie à passer uniquement en HTTPS si true                         !!! attention à mettre true en production !!!
+            secure: false, // force le cookie à passer uniquement en HTTPS si true                         !!! attention à mettre true en production !!!
             sameSite: 'strict', //protège contre les attaques CSRF.
             maxAge: 30 * 24 * 60 * 60 * 1000
             //maxAge : 10 * 1000
@@ -138,6 +138,14 @@ app.post('/connexion', (req, res) => {
       })
     }
   )
+})
+
+
+
+//Vérifie si il est connecté
+app.post('/isConnect', verifToken, (req, res) => {
+  console.log('Déjà connecté id : ' + req.user.id + ' login : ' + req.user.login);
+  res.json({ message: 'Connecté', login: req.user.login });
 })
 
 //Verification token
@@ -158,12 +166,6 @@ function verifToken(req, res, next) {
     return res.status(401).json({ message: 'Token invalide ou expiré' });
   }
 }
-
-//Vérifie si il est connecté
-app.post('/isConnect', verifToken, (req, res) => {
-  console.log('Déjà connecté id : ' + req.user.id + ' login : ' + req.user.login);
-  res.json({ message: 'Connecté', login: req.user.login });
-})
 
 app.post('/deconnexion', verifToken, (req, res) => {
   res.clearCookie('authtoken');

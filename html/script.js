@@ -20,32 +20,48 @@ const email = document.getElementById('email');
 
 // LOAD DE LA PAGE 
 window.addEventListener('DOMContentLoaded', () => {
-    //COndition de si il est connecté avec token
 
-    //SI non => se connecter
-    //Crer un efonction plus tard afficher inscription possible
 
-    // formInputInscription.style.display = 'none';
-    // inscriptionBtn.style.display = 'none';
-    // voirMoinsInscription.style.display = 'none';
+    fetch('/isConnect', { method: 'POST' })
+        .then(response => {
+            if (!response.ok) {
+                console.log(response.message);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.message === 'Connecté') {
+                // Rafraîchir la classe depuis le serveur (plus fiable que le localStorage seul)
+                localStorage.setItem('idUsers', data.idUsers);
+                localStorage.setItem('login', data.login);
 
-    console.log(formInscription.length)
+                //Gerer affichage
 
-    for(let i = 0; i < formInscription.length; i++){
+            } else {
+                //Gerer affichage
+            }
+        })
+        .catch(erreur => {
+            console.log('Impossible de vérifier la connexion :', erreur);
+            //Gerer afficahge
+        });
+
+
+    for (let i = 0; i < formInscription.length; i++) {
         formInscription[i].style.display = 'none';
     }
 
-    
+
 })
 
 
 voirInscription.addEventListener('click', () => {
 
-    for(let i = 0; i < formInscription.length; i++){
+    for (let i = 0; i < formInscription.length; i++) {
         formInscription[i].style.display = 'flex';
     }
 
-    for(let i = 0; i < formConnexion.length; i++){
+    for (let i = 0; i < formConnexion.length; i++) {
         formConnexion[i].style.display = 'none';
     }
 
@@ -53,11 +69,11 @@ voirInscription.addEventListener('click', () => {
 
 voirMoinsInscription.addEventListener('click', () => {
 
-    for(let i = 0; i < formInscription.length; i++){
+    for (let i = 0; i < formInscription.length; i++) {
         formInscription[i].style.display = 'none';
     }
 
-    for(let i = 0; i < formConnexion.length; i++){
+    for (let i = 0; i < formConnexion.length; i++) {
         formConnexion[i].style.display = 'flex';
     }
 
@@ -115,7 +131,7 @@ connexionBtn.addEventListener('click', () => {
                 alert(data.message);
                 console.log(data.message);
             } else { // Connexion réussie, on sauvegarde la classe dans le localStorage
-                
+
                 //GERER L'AFFICHAGE
                 alert("T'es connecté gros");
                 //Remplissage du local storage
