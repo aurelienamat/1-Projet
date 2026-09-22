@@ -67,7 +67,7 @@ app.post('/inscription', (req, res) => {
     .then(hash => {
       //Insertion dans la base
       connection.query(
-        'INSERT INTO user(nom,prenom,email,password,username) VALUES(?,?,?,?,?)',
+        'INSERT INTO User(nom,prenom,mail,password,login,admin) VALUES(?,?,?,?,?,false)',
         [req.body.nom, req.body.prenom, req.body.email, hash, req.body.username],
         (err, results) => {
           if (err) {
@@ -82,3 +82,91 @@ app.post('/inscription', (req, res) => {
     })
 
 })
+
+
+//CONNEXION
+app.post('/connexion', (req, res) => {
+  //console.log(req.body);
+
+  //Récupération password dans la base pour la comparaison
+  connection.query(
+    'SELECT password,id,login FROM User WHERE login = ?',
+    [req.body.login], (err, results) => {
+      if (err) {
+        console.log("Erreur récupération login " + err);
+        return;
+      }
+      if (results.length == 0) {
+        console.log("Erreur identifiant");
+        res.json({ message: 'Identifiant ou mot de passe invalides' });
+        return;
+      }
+      //console.log(results[0]);
+      //res.json({ message: 'login trouvé' });
+      let resultat = results[0];
+      bcrypt.compare(req.body.password, resultat.password, (err, results) => {
+        if (err) {
+          console.log('Erreur compare' + err);
+          res.json({ message: 'err hash' });
+          return;
+        }
+        if (results) {
+          console.log('Connexion réussi id : ' + resultat.id);
+
+          //Creation du token
+          const token = jwt.sign(
+            { id: resultat.id, login: resultat.login },
+            process.env.JWT_SECRET,
+            { expiresIn: '30d' }
+          );
+
+          res.cookie('authtoken', token, {
+            httpOnly: true, //empêche le JavaScript d'accéder au cookie, donc protège contre le XSS
+            secure: true, // force le cookie à passer uniquement en HTTPS si true                         !!! attention à mettre true en production !!!
+            sameSite: 'strict', //protège contre les attaques CSRF.
+            maxAge: 30 * 24 * 60 * 60 * 1000
+            //maxAge : 10 * 1000
+          })
+
+          res.json({ message: "connexion reussi", login: resultat.login, idUsers: resultat.id });
+
+
+        } else {
+          res.json({ message: 'connexion echoué' });
+          return;
+        }
+      })
+    }
+  )
+})
+
+//Verification token
+function verifToken(req, res, next) {
+  const token = req.cookies.authtoken;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Non connecté' });
+  }
+
+  //test si le token est valide
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.clearCookie('authtoken');
+    return res.status(401).json({ message: 'Token invalide ou expiré' });
+  }
+}
+
+//Vérifie si il est connecté
+app.post('/isConnect', verifToken, (req, res) => {
+  console.log('Déjà connecté id : ' + req.user.id + ' login : ' + req.user.login);
+  res.json({ message: 'Connecté', login: req.user.login });
+})
+
+app.post('/deconnexion', verifToken, (req, res) => {
+  res.clearCookie('authtoken');
+  console.log("l'id " + req.user.id + " se déco");
+  res.json({ message: 'Déconnecté' });
+});
