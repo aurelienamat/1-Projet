@@ -27,3 +27,58 @@ connection.connect((err) => {
   }
   console.log('Connecté à la base de données MySQL.');
 });
+
+//Lire sur le port 3000
+app.listen(3000, () => {
+  console.log('Server is running on :3000');
+})
+
+//Gestion Inscription Utilisateur
+app.post('/inscription', (req, res) => {
+  //console.log(req.body);
+  //Verification insertion
+  if (req.body.password.length < 8) {
+    res.json({ message: 'Mot de passe invalide', error: "length" });
+    return;
+  }
+  if (!/[A-Z]/.test(req.body.password)) {
+    res.json({ message: 'Mot de passe invalide', error: "Majuscule" });
+    return;
+  }
+  if (!/[a-z]/.test(req.body.password)) {
+    res.json({ message: 'Mot de passe invalide', error: "Minuscule" });
+    return;
+  }
+  if (!/[0-9]/.test(req.body.password)) {
+    res.json({ message: 'Mot de passe invalide', error: "Chiffre" });
+    return;
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(req.body.password)) {
+    res.json({ message: 'Mot de passe invalide', error: "Carractère spécial" });
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(req.body.email)) {
+    res.json({ message: 'Email invalide' });
+    return;
+  }
+
+  //Hachage mot de passe 
+  bcrypt.hash(req.body.password, 10)
+    .then(hash => {
+      //Insertion dans la base
+      connection.query(
+        'INSERT INTO user(nom,prenom,email,password,username) VALUES(?,?,?,?,?)',
+        [req.body.nom, req.body.prenom, req.body.email, hash, req.body.username],
+        (err, results) => {
+          if (err) {
+            console.log('Erreur Insertion dans la base ' + err);
+            res.status(500).json({ message: 'Erreur bdd insertion', erreur: err });
+            return;
+          }
+          console.log('Insertion réussi');
+          res.json({ message: 'Inscription reussie !' });
+        }
+      )
+    })
+
+})

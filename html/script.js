@@ -11,7 +11,12 @@ const inscriptionBtn = document.getElementById('inscription-btn');
 const voirInscription = document.getElementById('form-btn-plus');
 const voirMoinsInscription = document.getElementById('form-btn-moins');
 
-
+//INPUT TEXT
+const username = document.getElementById('username');
+const password = document.getElementById('password');
+const prenom = document.getElementById('prenom');
+const nom = document.getElementById('nom');
+const email = document.getElementById('email');
 
 // LOAD DE LA PAGE 
 window.addEventListener('DOMContentLoaded', () => {
