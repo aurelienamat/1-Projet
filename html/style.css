@@ -24,6 +24,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    user-select: none;
 }
 
 #panel {
@@ -69,6 +70,7 @@ input {
 
 .btn-primary {
     cursor: pointer;
+    user-select: none;
 }
 
 #form-btn-action {
